@@ -34,12 +34,23 @@ module.exports = function(RED) {
             this.complete = "true";
         }
 
+        if (RED.settings.verbose) { this.log(this.cmd+" '"+this.expr+"'"); }
+        if (this.cmd.indexOf(" ") !== -1) {
+            this.error("jq command must be just the command - no spaces or extra parameters");
+            this.status({fill:"red",shape:"ring",text:"command error"});    
+        } else {
+            this.status({});
+        }
+
         var node = this;
 
         this.on("input", function(msg) {
+            if (node.cmd.indexOf(" ") !== -1) {
+                node.error("jq command must be just the command - no spaces or extra parameters");
+                return;
+            }
             if (msg == null) { return; }
             node.status({fill:"blue",shape:"dot"});
-            if (RED.settings.verbose) { node.log(node.cmd+" '" + node.expr + "'"); }
             var incoming;
             if (node.complete === "true") {
                 incoming = msg;
@@ -74,33 +85,29 @@ module.exports = function(RED) {
                 }
                 if (typeof incoming !== "string") { incoming = incoming.toString(); }
             }
-            if (RED.settings.verbose) { node.log("inp: "+incoming); }
-            if (node.cmd.indexOf(" ") == -1) {
-                node.status({fill:"green",shape:"dot",text:"running"});
-                var jq = spawn(node.cmd,[node.expr]);
-                var outparser = JSONStream.parse().on('root', function (obj) {
-                  msg.payload = obj;
-                  node.send([msg,null,null]);
-                });
-                jq.stdout.pipe(outparser);
-                jq.stderr.on('data', function (data) {
-                    if (isUtf8(data)) { msg.payload = data.toString(); }
-                    else { msg.payload = new Buffer(data); }
-                    node.send([null,msg,null]);
-                });
-                jq.on('close', function (code) {
-                    msg.payload = code;
-                    node.status({});
-                    node.send([null,null,msg]);
-                });
-                jq.on('error', function (code) {
-                    node.warn(code);
-                });
-                jq.stdin.write(incoming);
-                jq.stdin.write('\n');
-                jq.stdin.end();
-            }
-            else { node.error("Spawn command must be just the command - no spaces or extra parameters"); }
+            node.status({fill:"green",shape:"dot",text:"running"});
+            var jq = spawn(node.cmd,[node.expr]);
+            var outparser = JSONStream.parse().on('root', function (obj) {
+              msg.payload = obj;
+              node.send([msg,null,null]);
+            });
+            jq.stdout.pipe(outparser);
+            jq.stderr.on('data', function (data) {
+                if (isUtf8(data)) { msg.payload = data.toString(); }
+                else { msg.payload = new Buffer(data); }
+                node.send([null,msg,null]);
+            });
+            jq.on('close', function (code) {
+                msg.payload = code;
+                node.status({});
+                node.send([null,null,msg]);
+            });
+            jq.on('error', function (code) {
+                node.warn(code);
+            });
+            jq.stdin.write(incoming);
+            jq.stdin.write('\n');
+            jq.stdin.end();
         });
     }
     RED.nodes.registerType("jq",JqNode);
