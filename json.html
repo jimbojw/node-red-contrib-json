@@ -1,0 +1,113 @@
+<!--
+  Copyright 2015 Jim R. Wilson
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/x-red" data-template-name="contrib-json">
+    <div class="form-row">
+        <label for="node-input-engine"><i class="fa fa-wrench"></i> Engine</label>
+        <select type="text" id="node-input-engine" style="display: inline-block; width: 250px; vertical-align: top;">
+            <option value="JSONSelect">JSONSelect</option>
+            <option value="JSONPath">JSONPath</option>
+            <option value="jq">jq</option>
+        </select>
+    </div>
+    <div class="form-row" data-contrib-json-show-for="jq">
+        <label for="node-input-command"><i class="fa fa-file"></i> Command</label>
+        <input type="text" id="node-input-command" placeholder="command">
+    </div>
+    <div class="form-row">
+        <label for="node-input-expr"><i class="fa fa-file-code-o"></i> Expression</label>
+        <input type="text" id="node-input-expr" placeholder="expression">
+    </div>
+    <div class="form-row">
+        <label for="node-input-complete"><i class="fa fa-list"></i> Input</label>
+        <select type="text" id="node-input-complete" style="display: inline-block; width: 250px; vertical-align: top;">
+            <option value="property">message property</option>
+            <option value="complete">complete msg object</option>
+        </select>
+    </div>
+    <div class="form-row" id="node-prop-row">
+        <label for="node-input-prop">&nbsp;</label>msg.<input type="text" style="width:208px" id="node-input-prop">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-tips" data-contrib-json-show-for="JSONSelect">
+        <p>JSONSelect takes a CSS-like selector and gives an array of matches.</p>
+        <ul>
+            <li>Example Input: <code>{"foo":["a","b","c"]}</code></li>
+            <li>Expression: <code>:root > .foo :last-child</code></li>
+            <li>Example Output: <code>["c"]</code></li>
+        </ul>
+        <p>See <strong><a href="http://jsonselect.org/#tryit">jsonselect.org</a></strong> for more examples.</p>
+    </div>
+    <div class="form-tips" data-contrib-json-show-for="JSONPath">
+        <p>JSONPath takes an XPath-like expression and gives an array of matches.</p>
+        <ul>
+            <li>Example Input: <code>{"foo":["a","b","c"]}</code></li>
+            <li>Expression: <code>$.foo[(@.length-1)]</code></li>
+            <li>Example Output: <code>["c"]</code></li>
+        </ul>
+        <p>See the <strong><a href="https://www.npmjs.com/package/JSONPath">JSONPath documentation</a></strong> for more examples.</p>
+    </div>
+    <div class="form-tips" data-contrib-json-show-for="jq">
+        <p>jq applies a powerful filter expression to mixed input, giving one or more outputs.</p>
+        <ul>
+            <li>Example Input: <code>{"foo":["a","b","c"]}</code></li>
+            <li>Expression: <code>.foo[-1:] | {last: .[]}</code></li>
+            <li>Example Output: <code>{"last": "c"}</code></li>
+        </ul>
+        <p>See the <strong><a href="http://stedolan.github.io/jq/tutorial/">jq tutorial</a></strong> for more examples.</p>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="contrib-json">
+    <p>Process messages by using one of several special-purpose mini languages.</p> 
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('contrib-json',{
+        category: 'function',
+        color:"#C6A0E8",
+        defaults: {
+            engine: {value:"JSONSelect"},
+            command: {value:"jq"},
+            expr: {value:":root"},
+            complete: {value:"property",required:true},
+            prop: {value:"payload"},
+            name: {value:""}
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "template.png",
+        align: "right",
+        label: function() {
+            return this.name||this.expr;
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            $("#node-input-engine").change(function() {
+                $("[data-contrib-json-show-for]").hide();
+                $("[data-contrib-json-show-for~=\""+$(this).val()+"\"]").show();
+            }).change();
+            $("#node-input-complete").change(function() {
+                $("#node-prop-row").toggle($(this).val()==="property");
+            }).change();
+        }
+    });
+</script>
