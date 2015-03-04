@@ -34,7 +34,7 @@ module.exports = function(RED) {
         if (RED.settings.verbose) { this.log(this.engine+" '"+this.expr+"'"); }
 
         if (this.engine in engines) {
-            engines[this.engine](this);
+            engines[this.engine](this, RED);
         } else {
             this.status({fill:"red",shape:"ring",text:"unrecognized engine"});
             this.warn(Error('Unrecognized engine: ' + this.engine));

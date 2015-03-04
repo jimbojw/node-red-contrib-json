@@ -21,6 +21,7 @@
             <option value="JSONSelect">JSONSelect</option>
             <option value="JSONPath">JSONPath</option>
             <option value="jq">jq</option>
+            <option value="json-select">json-select</option>
         </select>
     </div>
     <div class="form-row" data-contrib-json-show-for="jq">
@@ -71,6 +72,16 @@
             <li>Example Output: <code>{"last": "c"}</code></li>
         </ul>
         <p>See the <strong><a href="http://stedolan.github.io/jq/tutorial/">jq tutorial</a></strong> for more examples.</p>
+    </div>
+    <div class="form-tips" data-contrib-json-show-for="json-select">
+        <p>json-select composes objects using a JSON expression or JSONStream based path.</p>
+        <ul>
+            <li>Example Input: <code>{"foo":["a","b","c"]}</code></li>
+            <li>Expression (JSON): <code>{"last":["foo","2"]}</code></li>
+            <li>Expression (path): <code>{last:foo.2}</code></li>
+            <li>Example Output: <code>{"last": "c"}</code></li>
+        </ul>
+        <p>See the <strong><a href="https://www.npmjs.com/package/json-select">json-select documentation</a></strong> for more examples.</p>
     </div>
 </script>
 
